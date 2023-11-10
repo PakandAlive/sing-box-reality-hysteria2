@@ -699,8 +699,8 @@ echo "uuid和短id 生成完成"
 echo ""
 # Ask for listen port
 while true; do
-    read -p "请输入Reality端口号 (default: 443): " reality_port
-    reality_port=${reality_port:-443}
+    read -p "请输入Reality端口号 (default: 8001): " reality_port
+    reality_port=${reality_port:-8001}
 
     # 检测端口是否被占用
     if ss -tuln | grep -q ":$reality_port\b"; then
@@ -796,7 +796,7 @@ cat > /root/sbox/sbconfig_server.json << EOF
           "enabled": true,
           "handshake": {
             "server": "$reality_server_name",
-            "server_port": 443
+            "server_port": 8001
           },
           "private_key": "$private_key",
           "short_id": ["$short_id"]
