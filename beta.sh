@@ -32,7 +32,7 @@ show_notice() {
 }
 
 # 作者介绍
-print_with_delay "Reality Hysteria2 wss 三合一脚本 by 绵阿羊" 0.03
+print_with_delay "正在安装脚本中" 0.03
 echo ""
 echo ""
 
