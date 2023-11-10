@@ -17,13 +17,13 @@
 ### reality和hysteria2 vmess ws三合一脚本
 
 ```bash
-bash <(curl -fsSL https://github.com/vveg26/sing-box-reality-hysteria2/raw/main/beta.sh)
+bash <(curl -fsSL https://github.com/nowhash6120/sing-box-reality-hysteria2/raw/main/beta.sh)
 ```
 
 ### reality hysteria2二合一脚本
 
 ```bash
-bash <(curl -fsSL https://github.com/vveg26/sing-box-reality-hysteria2/raw/main/install.sh)
+bash <(curl -fsSL https://github.com/nowhash6120/sing-box-reality-hysteria2/raw/main/install.sh)
 ```
 
 ### 安装完成后终端输入 mianyang 可再次调用本脚本
