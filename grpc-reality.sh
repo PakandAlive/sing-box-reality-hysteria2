@@ -62,12 +62,12 @@ install_base(){
 }
 # 创建快捷方式
 create_shortcut() {
-  cat > /root/sbox/mianyang.sh << EOF
+  cat > /root/sbox/nowhash.sh << EOF
 #!/usr/bin/env bash
 bash <(curl -fsSL https://github.com/vveg26/sing-box-reality-hysteria2/raw/main/grpc-reality.sh) \$1
 EOF
-  chmod +x /root/sbox/mianyang.sh
-  ln -sf /root/sbox/mianyang.sh /usr/bin/mianyang
+  chmod +x /root/sbox/nowhash.sh
+  ln -sf /root/sbox/nowhash.sh /usr/bin/nowhash
 
 }
 # 下载cloudflared和sb
@@ -425,8 +425,8 @@ uninstall_singbox() {
     # Remove configuration and executable files
     rm -f /root/sbox/sbconfig_server.json
     rm -f /root/sbox/sing-box
-    rm -f /root/sbox/mianyang.sh
-    rm -f /usr/bin/mianyang
+    rm -f /root/sbox/nowhash.sh
+    rm -f /usr/bin/nowhash
     rm -f /root/sbox/config
 
     # Remove directories
@@ -438,7 +438,7 @@ uninstall_singbox() {
 install_base
 
 # Check if reality.json, sing-box, and sing-box.service already exist
-if [ -f "/root/sbox/sbconfig_server.json" ] && [ -f "/root/sbox/config" ] && [ -f "/root/sbox/mianyang.sh" ] && [ -f "/usr/bin/mianyang" ] && [ -f "/root/sbox/sing-box" ] && [ -f "/etc/systemd/system/sing-box.service" ]; then
+if [ -f "/root/sbox/sbconfig_server.json" ] && [ -f "/root/sbox/config" ] && [ -f "/root/sbox/nowhash.sh" ] && [ -f "/usr/bin/nowhash" ] && [ -f "/root/sbox/sing-box" ] && [ -f "/etc/systemd/system/sing-box.service" ]; then
 
     echo "sing-box-reality-hysteria2已经安装"
     echo ""
