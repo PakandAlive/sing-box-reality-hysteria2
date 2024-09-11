@@ -14,7 +14,7 @@ bash <(curl -fsSL https://github.com/nowhash6120/sing-box-reality-hysteria2/raw/
 bash <(curl -fsSL https://github.com/nowhash6120/sing-box-reality-hysteria2/raw/main/install.sh)
 ```
 
-### 安装完成后终端输入 mianyang 可再次调用本脚本
+### 安装完成后终端输入 nowhash 可再次调用本脚本
 
 
 |项目||
