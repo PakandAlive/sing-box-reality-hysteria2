@@ -4,7 +4,7 @@
 print_with_delay() {
     text="$1"
     delay="$2"
-    for ((i = 0; i < ${#text}; i++ )); do
+    for ((i = 0; i < ${#text}; i++)); do
         echo -n "${text:$i:1}"
         sleep $delay
     done
@@ -131,12 +131,9 @@ show_client_configuration() {
     # hy password
     hy_password=$(grep -o "HY_PASSWORD='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
     
-    # Generate the hy link
-    hy2_link="hysteria2://$hy_password@$server_ip:$hy_port?insecure=1&sni=$hy_server_name"
-
     echo ""
     echo "" 
-    show_notice "$(green "Hysteria2 通用链接和参数")"
+    show_notice "$(green "Hysteria2 通用参数")"
     echo ""
     echo "" 
     green "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━Hysteria2 客户端通用参数━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" 
