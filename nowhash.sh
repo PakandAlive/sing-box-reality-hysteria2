@@ -4,7 +4,7 @@
 print_with_delay() {
     text="$1"
     delay="$2"
-    for ((i = 0; i < ${#text}; i++)); do
+    for ((i = 0; i < ${#text}; i++ )); do
         echo -n "${text:$i:1}"
         sleep $delay
     done
@@ -16,7 +16,7 @@ red() { echo -e "\033[31m\033[01m$*\033[0m"; }  # 红色
 green() { echo -e "\033[32m\033[01m$*\033[0m"; }   # 绿色
 yellow() { echo -e "\033[33m\033[01m$*\033[0m"; }   # 黄色
 
-#信息提示
+# 信息提示
 show_notice() {
     local message="$1"
 
@@ -37,162 +37,132 @@ echo ""
 echo ""
 
 # 安装依赖
-install_base(){
-  local packages=("qrencode")
-  for package in "${packages[@]}"; do
-    if ! command -v "$package" &> /dev/null; then
-      echo "正在安装 $package..."
-      if [ -n "$(command -v apt)" ]; then
-        sudo apt update > /dev/null 2>&1
-        sudo apt install -y "$package" > /dev/null 2>&1
-      elif [ -n "$(command -v yum)" ]; then
-        sudo yum install -y "$package"
-      elif [ -n "$(command -v dnf)" ]; then
-        sudo dnf install -y "$package"
-      else
-        echo "无法安装 $package。请手动安装，并重新运行脚本。"
-        exit 1
-      fi
-      echo "$package 已安装。"
-    else
-      echo "$package 已经安装。"
-    fi
-  done
+install_base() {
+    local packages=("qrencode")
+    for package in "${packages[@]}"; do
+        if ! command -v "$package" &> /dev/null; then
+            echo "正在安装 $package..."
+            if [ -n "$(command -v apt)" ]; then
+                sudo apt update > /dev/null 2>&1
+                sudo apt install -y "$package" > /dev/null 2>&1
+            elif [ -n "$(command -v yum)" ]; then
+                sudo yum install -y "$package"
+            elif [ -n "$(command -v dnf)" ]; then
+                sudo dnf install -y "$package"
+            else
+                echo "无法安装 $package。请手动安装，并重新运行脚本。"
+                exit 1
+            fi
+            echo "$package 已安装。"
+        else
+            echo "$package 已经安装。"
+        fi
+    done
 }
 
 # 下载cloudflared和sb
-download_singbox(){
-  arch=$(uname -m)
-  echo "Architecture: $arch"
-  # Map architecture names
-  case ${arch} in
-      x86_64)
-          arch="amd64"
-          ;;
-      aarch64)
-          arch="arm64"
-          ;;
-      armv7l)
-          arch="armv7"
-          ;;
-  esac
-  # Fetch the latest (including pre-releases) release version number from GitHub API
-  latest_version_tag=$(curl -s "https://api.github.com/repos/SagerNet/sing-box/releases" | grep -Po '"tag_name": "\K.*?(?=")' | sort -V | tail -n 1)
-  latest_version=${latest_version_tag#v}  # Remove 'v' prefix from version number
-  echo "Latest version: $latest_version"
-  # Prepare package names
-  package_name="sing-box-${latest_version}-linux-${arch}"
-  # Prepare download URL
-  url="https://github.com/SagerNet/sing-box/releases/download/${latest_version_tag}/${package_name}.tar.gz"
-  # Download the latest release package (.tar.gz) from GitHub
-  curl -sLo "/root/${package_name}.tar.gz" "$url"
+download_singbox() {
+    arch=$(uname -m)
+    # Map architecture names
+    case ${arch} in
+        x86_64)
+            arch="amd64"
+            ;;
+        aarch64)
+            arch="arm64"
+            ;;
+        armv7l)
+            arch="armv7"
+            ;;
+    esac
+    # Fetch the latest (including pre-releases) release version number from GitHub API
+    latest_version_tag=$(curl -s "https://api.github.com/repos/SagerNet/sing-box/releases" | grep -Po '"tag_name": "\K.*?(?=")' | sort -V | tail -n 1)
+    latest_version=${latest_version_tag#v}  # Remove 'v' prefix from version number
+    # Prepare package names
+    package_name="sing-box-${latest_version}-linux-${arch}"
+    # Prepare download URL
+    url="https://github.com/SagerNet/sing-box/releases/download/${latest_version_tag}/${package_name}.tar.gz"
+    # Download the latest release package (.tar.gz) from GitHub
+    curl -sLo "/root/${package_name}.tar.gz" "$url"
 
-  # Extract the package and move the binary to /root
-  tar -xzf "/root/${package_name}.tar.gz" -C /root
-  mv "/root/${package_name}/sing-box" /root/sbox
+    # Extract the package and move the binary to /root
+    tar -xzf "/root/${package_name}.tar.gz" -C /root
+    mv "/root/${package_name}/sing-box" /root/sbox
 
-  # Cleanup the package
-  rm -r "/root/${package_name}.tar.gz" "/root/${package_name}"
+    # Cleanup the package
+    rm -r "/root/${package_name}.tar.gz" "/root/${package_name}"
 
-  # Set the permissions
-  chown root:root /root/sbox/sing-box
-  chmod +x /root/sbox/sing-box
+    # Set the permissions
+    chown root:root /root/sbox/sing-box
+    chmod +x /root/sbox/sing-box
 }
 
-download_cloudflared(){
-  arch=$(uname -m)
-  # Map architecture names
-  case ${arch} in
-      x86_64)
-          cf_arch="amd64"
-          ;;
-      aarch64)
-          cf_arch="arm64"
-          ;;
-      armv7l)
-          cf_arch="arm"
-          ;;
-  esac
+download_cloudflared() {
+    arch=$(uname -m)
+    # Map architecture names
+    case ${arch} in
+        x86_64)
+            cf_arch="amd64"
+            ;;
+        aarch64)
+            cf_arch="arm64"
+            ;;
+        armv7l)
+            cf_arch="arm"
+            ;;
+    esac
 
-  # install cloudflared linux
-  cf_url="https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-${cf_arch}"
-  curl -sLo "/root/sbox/cloudflared-linux" "$cf_url"
-  chmod +x /root/sbox/cloudflared-linux
-  echo ""
+    # install cloudflared linux
+    cf_url="https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-${cf_arch}"
+    curl -sLo "/root/sbox/cloudflared-linux" "$cf_url"
+    chmod +x /root/sbox/cloudflared-linux
+    echo ""
 }
 
 # client configuration
 show_client_configuration() {
-  # 获取当前ip
-  server_ip=$(grep -o "SERVER_IP='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
-  
-  # hy port
-  hy_port=$(grep -o "HY_PORT='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
-  # hy sni
-  hy_server_name=$(grep -o "HY_SERVER_NAME='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
-  # hy password
-  hy_password=$(grep -o "HY_PASSWORD='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
-  
-  # Generate the hy link
-  hy2_link="hysteria2://$hy_password@$server_ip:$hy_port?insecure=1&sni=$hy_server_name"
+    # 获取当前ip
+    server_ip=$(grep -o "SERVER_IP='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
+    
+    # hy port
+    hy_port=$(grep -o "HY_PORT='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
+    # hy sni
+    hy_server_name=$(grep -o "HY_SERVER_NAME='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
+    # hy password
+    hy_password=$(grep -o "HY_PASSWORD='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
+    
+    # Generate the hy link
+    hy2_link="hysteria2://$hy_password@$server_ip:$hy_port?insecure=1&sni=$hy_server_name"
 
-  echo ""
-  echo "" 
-  show_notice "$(green "Hysteria2 通用链接和二维码和通用参数")"
-  echo ""
-  echo "" 
-  green "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━hysteria2 通用链接格式━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-  echo "$hy2_link"
-  echo ""
-  green "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo "" 
-  echo ""
-  green "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━hysteria2 二维码━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-  qrencode -t UTF8 $hy2_link  
-  echo ""
-  green "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""  
-  echo ""
-  green "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━Hysteria2 客户端通用参数━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" 
-  echo "" 
-  echo "服务器ip: $server_ip"
-  echo "端口号: $hy_port"
-  echo "密码password: $hy_password"
-  echo "域名SNI: $hy_server_name"
-  echo "跳过证书验证（允许不安全）: True"
-  echo ""
-  green "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-  echo ""
-  green "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━Hysteria2 官方内核yaml文件（可搭配v2rayN)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" 
-cat << EOF
-
-server: $server_ip:$hy_port
-auth: $hy_password
-tls:
-  sni: $hy_server_name
-  insecure: true
-fastOpen: true
-socks5:
-  listen: 127.0.0.1:50000
-
-EOF
-  green "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  sleep 3
+    echo ""
+    echo "" 
+    show_notice "$(green "Hysteria2 通用链接和参数")"
+    echo ""
+    echo "" 
+    green "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━Hysteria2 客户端通用参数━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" 
+    echo "" 
+    echo "服务器ip: $server_ip"
+    echo "端口号: $hy_port"
+    echo "密码password: $hy_password"
+    echo "域名SNI: $hy_server_name"
+    echo "跳过证书验证（允许不安全）: True"
+    echo ""
+    green "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    echo ""
+    sleep 3
 }
 
-#enable bbr
+# enable bbr
 enable_bbr() {
     # temporary workaround for installing bbr
     bash <(curl -L -s https://raw.githubusercontent.com/teddysun/across/master/bbr.sh)
     echo ""
 }
 
-#修改sb
+# 修改sb
 modify_singbox() {
-    #修改hysteria2配置
+    # 修改hysteria2配置
     show_notice "开始修改hysteria2端口号"
     hy_current_port=$(grep -o "HY_PORT='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
     while true; do
@@ -217,12 +187,12 @@ modify_singbox() {
 
 # 创建快捷方式
 create_shortcut() {
-  cat > /root/sbox/nowhash.sh << EOF
+    cat > /root/sbox/nowhash.sh << EOF
 #!/usr/bin/env bash
 bash <(curl -fsSL https://github.com/vveg26/sing-box-reality-hysteria2/raw/main/beta.sh) \$1
 EOF
-  chmod +x /root/sbox/nowhash.sh
-  ln -sf /root/sbox/nowhash.sh /usr/bin/nowhash
+    chmod +x /root/sbox/nowhash.sh
+    ln -sf /root/sbox/nowhash.sh /usr/bin/nowhash
 }
 
 uninstall_singbox() {
@@ -272,60 +242,60 @@ if [ -f "/root/sbox/sbconfig_server.json" ] && [ -f "/root/sbox/cloudflared-linu
     read -p "Enter your choice (1-8): " choice
 
     case $choice in
-      1)
-          show_notice "开始卸载..."
-          # Uninstall previous installation
-          uninstall_singbox
-        ;;
-      2)
-          #修改sb
-          modify_singbox
-          # show client configuration
-          show_client_configuration
-          exit 0
-        ;;
-      3)  
-          # show client configuration
-          show_client_configuration
-          exit 0
-      ;;		
-      8)
-          uninstall_singbox
-          exit 0
-          ;;
-      4)
-          show_notice "更新 Sing-box..."
-          download_singbox
-          # Check configuration and start the service
-          if /root/sbox/sing-box check -c /root/sbox/sbconfig_server.json; then
-              echo "Configuration checked successfully. Starting sing-box service..."
-              systemctl restart sing-box
-          fi
-          echo ""  
-          exit 0
-          ;;
-      5)
-          systemctl stop argo
-          systemctl start argo
-          echo "重新启动完成，查看新的客户端信息"
-          show_client_configuration
-          exit 0
-          ;;
-      7)
-          enable_bbr
-          exit 0
-          ;;
-      6)
-          systemctl restart sing-box
-          echo "重启完成"
-          exit 0
-          ;;
-      *)
-          echo "Invalid choice. Exiting."
-          exit 1
-          ;;
-	esac
-	fi
+        1)
+            show_notice "开始卸载..."
+            # Uninstall previous installation
+            uninstall_singbox
+            ;;
+        2)
+            # 修改sb
+            modify_singbox
+            # show client configuration
+            show_client_configuration
+            exit 0
+            ;;
+        3)  
+            # show client configuration
+            show_client_configuration
+            exit 0
+            ;;		
+        8)
+            uninstall_singbox
+            exit 0
+            ;;
+        4)
+            show_notice "更新 Sing-box..."
+            download_singbox
+            # Check configuration and start the service
+            if /root/sbox/sing-box check -c /root/sbox/sbconfig_server.json; then
+                echo "Configuration checked successfully. Starting sing-box service..."
+                systemctl restart sing-box
+            fi
+            echo ""  
+            exit 0
+            ;;
+        5)
+            systemctl stop argo
+            systemctl start argo
+            echo "重新启动完成，查看新的客户端信息"
+            show_client_configuration
+            exit 0
+            ;;
+        7)
+            enable_bbr
+            exit 0
+            ;;
+        6)
+            systemctl restart sing-box
+            echo "重启完成"
+            exit 0
+            ;;
+        *)
+            echo "Invalid choice. Exiting."
+            exit 1
+            ;;
+    esac
+fi
 
 mkdir -p "/root/sbox/"
 
@@ -363,10 +333,10 @@ echo ""
 echo "自签证书生成完成"
 echo ""
 
-#ip地址
+# ip地址
 server_ip=$(curl -s4m8 ip.sb -k) || server_ip=$(curl -s6m8 ip.sb -k)
 
-#config配置文件
+# config配置文件
 cat > /root/sbox/config <<EOF
 
 # VPS ip
@@ -379,7 +349,7 @@ HY_PASSWORD='$hy_password'
 
 EOF
 
-#TODO argo开启
+# TODO argo开启
 echo "设置argo"
 cat > /etc/systemd/system/argo.service << EOF
 [Unit]
