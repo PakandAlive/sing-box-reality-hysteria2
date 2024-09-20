@@ -38,7 +38,6 @@ echo ""
 
 # 安装依赖
 install_base(){
-  # 安装qrencode
   local packages=("qrencode")
   for package in "${packages[@]}"; do
     if ! command -v "$package" &> /dev/null; then
@@ -78,13 +77,9 @@ download_singbox(){
           ;;
   esac
   # Fetch the latest (including pre-releases) release version number from GitHub API
-  # 正式版
-  #latest_version_tag=$(curl -s "https://api.github.com/repos/SagerNet/sing-box/releases" | grep -Po '"tag_name": "\K.*?(?=")' | head -n 1)
-  #beta本
   latest_version_tag=$(curl -s "https://api.github.com/repos/SagerNet/sing-box/releases" | grep -Po '"tag_name": "\K.*?(?=")' | sort -V | tail -n 1)
   latest_version=${latest_version_tag#v}  # Remove 'v' prefix from version number
   echo "Latest version: $latest_version"
-  # Detect server architecture
   # Prepare package names
   package_name="sing-box-${latest_version}-linux-${arch}"
   # Prepare download URL
@@ -126,10 +121,8 @@ download_cloudflared(){
   echo ""
 }
 
-
 # client configuration
 show_client_configuration() {
-
   # 获取当前ip
   server_ip=$(grep -o "SERVER_IP='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
   
@@ -155,7 +148,7 @@ show_client_configuration() {
   green "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo "" 
   echo ""
-  green "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━hysteria2 二维码━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  green "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━hysteria2 二维码━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo ""
   qrencode -t UTF8 $hy2_link  
   echo ""
@@ -181,10 +174,6 @@ auth: $hy_password
 tls:
   sni: $hy_server_name
   insecure: true
-# 可自己修改对应带宽，不添加则默认为bbr，否则使用hy2的brutal拥塞控制
-# bandwidth:
-#   up: 100 mbps
-#   down: 100 mbps
 fastOpen: true
 socks5:
   listen: 127.0.0.1:50000
@@ -192,269 +181,6 @@ socks5:
 EOF
   green "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   sleep 3
-  cat /root/sbox/argo.log | grep trycloudflare.com | awk 'NR==2{print}' | awk -F// '{print $2}' | awk '{print $1}' | xargs -I {} sed -i "s/ARGO_DOMAIN='.*'/ARGO_DOMAIN='{}'/g" /root/sbox/config
-  rm -f /root/sbox/argo.log
-  #argo域名
-  argo_domain=$(grep -o "ARGO_DOMAIN='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
-
-  show_notice "clash-meta配置参数"
-cat << EOF
-
-port: 7890
-allow-lan: true
-mode: rule
-log-level: info
-unified-delay: true
-global-client-fingerprint: chrome
-ipv6: true
-dns:
-  enable: true
-  listen: :53
-  ipv6: true
-  enhanced-mode: fake-ip
-  fake-ip-range: 198.18.0.1/16
-  default-nameserver: 
-    - 223.5.5.5
-    - 8.8.8.8
-  nameserver:
-    - https://dns.alidns.com/dns-query
-    - https://doh.pub/dns-query
-  fallback:
-    - https://1.0.0.1/dns-query
-    - tls://dns.google
-  fallback-filter:
-    geoip: true
-    geoip-code: CN
-    ipcidr:
-      - 240.0.0.0/4
-
-proxies:        
-  - name: Hysteria2
-    type: hysteria2
-    server: $server_ip
-    port: $hy_port
-    #  up和down均不写或为0则使用BBR流控
-    # up: "30 Mbps" # 若不写单位，默认为 Mbps
-    # down: "200 Mbps" # 若不写单位，默认为 Mbps
-    password: $hy_password
-    sni: $hy_server_name
-    skip-cert-verify: true
-    alpn:
-      - h3
-
-proxy-groups:
-  - name: 节点选择
-    type: select
-    proxies:
-      - 自动选择
-      - Hysteria2
-      - DIRECT
-
-  - name: 自动选择
-    type: url-test #选出延迟最低的机场节点
-    proxies:
-      - Hysteria2
-    url: "http://www.gstatic.com/generate_204"
-    interval: 300
-    tolerance: 50
-
-
-rules:
-    - GEOIP,LAN,DIRECT
-    - GEOIP,CN,DIRECT
-    - MATCH,节点选择
-
-EOF
-
-show_notice "sing-box客户端配置参数"
-cat << EOF
-{
-    "dns": {
-        "servers": [
-            {
-                "tag": "remote",
-                "address": "https://1.1.1.1/dns-query",
-                "detour": "select"
-            },
-            {
-                "tag": "local",
-                "address": "https://223.5.5.5/dns-query",
-                "detour": "direct"
-            },
-            {
-                "address": "rcode://success",
-                "tag": "block"
-            }
-        ],
-        "rules": [
-            {
-                "outbound": [
-                    "any"
-                ],
-                "server": "local"
-            },
-            {
-                "disable_cache": true,
-                "geosite": [
-                    "category-ads-all"
-                ],
-                "server": "block"
-            },
-            {
-                "clash_mode": "global",
-                "server": "remote"
-            },
-            {
-                "clash_mode": "direct",
-                "server": "local"
-            },
-            {
-                "geosite": "cn",
-                "server": "local"
-            }
-        ],
-        "strategy": "prefer_ipv4"
-    },
-    "inbounds": [
-        {
-            "type": "tun",
-            "inet4_address": "172.19.0.1/30",
-            "inet6_address": "2001:0470:f9da:fdfa::1/64",
-            "sniff": true,
-            "sniff_override_destination": true,
-            "domain_strategy": "prefer_ipv4",
-            "stack": "mixed",
-            "strict_route": true,
-            "mtu": 9000,
-            "endpoint_independent_nat": true,
-            "auto_route": true
-        },
-        {
-            "type": "socks",
-            "tag": "socks-in",
-            "listen": "127.0.0.1",
-            "sniff": true,
-            "sniff_override_destination": true,
-            "domain_strategy": "prefer_ipv4",
-            "listen_port": 2333,
-            "users": []
-        },
-        {
-            "type": "mixed",
-            "tag": "mixed-in",
-            "sniff": true,
-            "sniff_override_destination": true,
-            "domain_strategy": "prefer_ipv4",
-            "listen": "127.0.0.1",
-            "listen_port": 2334,
-            "users": []
-        }
-    ],
-  "experimental": {
-    "clash_api": {
-      "external_controller": "127.0.0.1:9090",
-      "secret": "",
-      "store_selected": true
-    }
-  },
-  "log": {
-    "disabled": false,
-    "level": "info",
-    "timestamp": true
-  },
-  "outbounds": [
-    {
-      "tag": "select",
-      "type": "selector",
-      "default": "urltest",
-      "outbounds": [
-        "urltest",
-        "sing-box-hysteria2"
-      ]
-    },
-    {
-            "type": "hysteria2",
-            "server": "$server_ip",
-            "server_port": $hy_port,
-            "tag": "sing-box-hysteria2",
-            
-            "up_mbps": 100,
-            "down_mbps": 100,
-            "password": "$hy_password",
-            "tls": {
-                "enabled": true,
-                "server_name": "$hy_server_name",
-                "insecure": true,
-                "alpn": [
-                    "h3"
-                ]
-            }
-        },
-    {
-      "tag": "direct",
-      "type": "direct"
-    },
-    {
-      "tag": "block",
-      "type": "block"
-    },
-    {
-      "tag": "dns-out",
-      "type": "dns"
-    },
-    {
-      "tag": "urltest",
-      "type": "urltest",
-      "outbounds": [
-        "sing-box-hysteria2"
-      ]
-    }
-  ],
-  "route": {
-    "auto_detect_interface": true,
-    "rules": [
-      {
-        "geosite": "category-ads-all",
-        "outbound": "block"
-      },
-      {
-        "outbound": "dns-out",
-        "protocol": "dns"
-      },
-      {
-        "clash_mode": "direct",
-        "outbound": "direct"
-      },
-      {
-        "clash_mode": "global",
-        "outbound": "select"
-      },
-      {
-        "geoip": [
-          "cn",
-          "private"
-        ],
-        "outbound": "direct"
-      },
-      {
-        "geosite": "geolocation-!cn",
-        "outbound": "select"
-      },
-      {
-        "geosite": "cn",
-        "outbound": "direct"
-      }
-    ],
-    "geoip": {
-            "download_detour": "select"
-        },
-    "geosite": {
-            "download_detour": "select"
-        }
-  }
-}
-EOF
-
 }
 
 #enable bbr
@@ -463,30 +189,11 @@ enable_bbr() {
     bash <(curl -L -s https://raw.githubusercontent.com/teddysun/across/master/bbr.sh)
     echo ""
 }
+
 #修改sb
 modify_singbox() {
-    #modifying reality configuration
-    show_notice "开始修改reality端口号和域名"
-    reality_current_port=$(grep -o "REALITY_PORT='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
-    while true; do
-        read -p "请输入想要修改的端口号 (当前端口号为 $reality_current_port): " reality_port
-        reality_port=${reality_port:-$reality_current_port}
-        if [ "$reality_port" -eq "$reality_current_port" ]; then
-            break
-        fi
-        if ss -tuln | grep -q ":$reality_port\b"; then
-            echo "端口 $reality_port 已经被占用，请选择其他端口。"
-        else
-            break
-        fi
-    done
-    reality_current_server_name=$(grep -o "REALITY_SERVER_NAME='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
-    read -p "请输入想要偷取的域名 (当前域名为 $reality_current_server_name): " reality_server_name
-    reality_server_name=${reality_server_name:-$reality_current_server_name}
-    echo ""
-    # modifying hysteria2 configuration
+    #修改hysteria2配置
     show_notice "开始修改hysteria2端口号"
-    echo ""
     hy_current_port=$(grep -o "HY_PORT='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
     while true; do
         read -p "请输入想要修改的端口号 (当前端口号为 $hy_current_port): " hy_port
@@ -502,13 +209,6 @@ modify_singbox() {
     done
 
     # 修改sing-box
-    sed -i -e "/\"listen_port\":/{N; s/\"[0-9]*\"/\"$hy_port\"/}" \
-          -e "/\"listen_port\":/{N; s/\"[0-9]*\"/\"$reality_port\"/}" \
-          -e "/\"tls\": {/,/\"server\":/{ /\"server_name\":/{N; s/\"server_name\": \".*\"/\"server_name\": \"$reality_server_name\"/ }}"
-
-    #修改config
-    sed -i "s/REALITY_PORT='[^']*'/REALITY_PORT='$reality_port'/" /root/sbox/config
-    sed -i "s/REALITY_SERVER_NAME='[^']*'/REALITY_SERVER_NAME='$reality_server_name'/" /root/sbox/config
     sed -i "s/HY_PORT='[^']*'/HY_PORT='$hy_port'/" /root/sbox/config
 
     # Restart sing-box service
@@ -523,7 +223,6 @@ bash <(curl -fsSL https://github.com/vveg26/sing-box-reality-hysteria2/raw/main/
 EOF
   chmod +x /root/sbox/nowhash.sh
   ln -sf /root/sbox/nowhash.sh /usr/bin/nowhash
-
 }
 
 uninstall_singbox() {
@@ -554,7 +253,7 @@ uninstall_singbox() {
 
 install_base
 
-# Check if reality.json, sing-box, and sing-box.service already exist
+# Check if sing-box and related files already exist
 if [ -f "/root/sbox/sbconfig_server.json" ] && [ -f "/root/sbox/cloudflared-linux" ] && [ -f "/root/sbox/sing-box" ] && [ -f "/etc/systemd/system/sing-box.service" ]; then
 
     echo "sing-box-reality-hysteria2已经安装"
@@ -619,7 +318,7 @@ if [ -f "/root/sbox/sbconfig_server.json" ] && [ -f "/root/sbox/cloudflared-linu
       6)
           systemctl restart sing-box
           echo "重启完成"
-	        exit 0
+          exit 0
           ;;
       *)
           echo "Invalid choice. Exiting."
@@ -634,43 +333,6 @@ download_singbox
 
 download_cloudflared
 
-# reality
-red "开始配置Reality"
-echo ""
-# Generate key pair
-echo "自动生成基本参数"
-echo ""
-key_pair=$(/root/sbox/sing-box generate reality-keypair)
-echo "Key pair生成完成"
-echo ""
-
-# Extract private key and public key
-private_key=$(echo "$key_pair" | awk '/PrivateKey/ {print $2}' | tr -d '"')
-public_key=$(echo "$key_pair" | awk '/PublicKey/ {print $2}' | tr -d '"')
-
-# Generate necessary values
-reality_uuid=$(/root/sbox/sing-box generate uuid)
-short_id=$(/root/sbox/sing-box generate rand --hex 8)
-echo "uuid和短id 生成完成"
-echo ""
-# Ask for listen port
-while true; do
-    read -p "请输入Reality端口号 (default: 443): " reality_port
-    reality_port=${reality_port:-443}
-
-    # 检测端口是否被占用
-    if ss -tuln | grep -q ":$reality_port\b"; then
-        echo "端口 $reality_port 已经被占用，请重新输入。"
-    else
-        break
-    fi
-done
-echo ""
-# Ask for server name (sni)
-read -p "请输入想要偷取的域名,需要支持tls1.3 (default: itunes.apple.com): " reality_server_name
-reality_server_name=${reality_server_name:-itunes.apple.com}
-echo ""
-
 # hysteria2
 green "开始配置hysteria2"
 echo ""
@@ -678,6 +340,7 @@ echo ""
 hy_password=$(/root/sbox/sing-box generate rand --hex 8)
 echo "自动生成了8位随机密码"
 echo ""
+
 # Ask for listen port
 while true; do
     read -p "请输入hysteria2监听端口 (default: 8443): " hy_port
@@ -700,27 +363,6 @@ echo ""
 echo "自签证书生成完成"
 echo ""
 
-# vmess ws
-yellow "开始配置vmess"
-echo ""
-# Generate hysteria necessary values
-vmess_uuid=$(/root/sbox/sing-box generate uuid)
-while true; do
-    read -p "请输入vmess端口，默认为18443(和tunnel通信用不会暴露在外): " vmess_port
-    vmess_port=${vmess_port:-18443}
-
-    # 检测端口是否被占用
-    if ss -tuln | grep -q ":$vmess_port\b"; then
-        echo "端口 $vmess_port 已经被占用，请选择其他端口。"
-    else
-        break
-    fi
-done
-echo ""
-read -p "ws路径 (无需加斜杠,默认随机生成): " ws_path
-ws_path=${ws_path:-$(/root/sbox/sing-box generate rand --hex 6)}
-
-
 #ip地址
 server_ip=$(curl -s4m8 ip.sb -k) || server_ip=$(curl -s6m8 ip.sb -k)
 
@@ -730,24 +372,10 @@ cat > /root/sbox/config <<EOF
 # VPS ip
 SERVER_IP='$server_ip'
 # Singbox
-# Reality
-PRIVATE_KEY='$private_key'
-PUBLIC_KEY='$public_key'
-SHORT_ID='$short_id'
-REALITY_UUID='$reality_uuid'
-REALITY_PORT='$reality_port'
-REALITY_SERVER_NAME='$reality_server_name'
 # Hy2
 HY_PORT='$hy_port'
 HY_SERVER_NAME='$hy_server_name'
 HY_PASSWORD='$hy_password'
-# Vmess
-VMESS_PORT=$vmess_port
-VMESS_UUID='$vmess_uuid'
-WS_PATH='$ws_path'
-
-# Argo
-ARGO_DOMAIN=''
 
 EOF
 
@@ -762,7 +390,7 @@ After=network.target
 Type=simple
 NoNewPrivileges=yes
 TimeoutStartSec=0
-ExecStart=/bin/bash -c "/root/sbox/cloudflared-linux tunnel --url http://localhost:$vmess_port --no-autoupdate --edge-ip-version auto --protocol http2>/root/sbox/argo.log 2>&1 "
+ExecStart=/bin/bash -c "/root/sbox/cloudflared-linux tunnel --url http://localhost:$hy_port --no-autoupdate --edge-ip-version auto --protocol http2>/root/sbox/argo.log 2>&1 "
 Restart=on-failure
 RestartSec=5s
 
@@ -774,7 +402,6 @@ EOF
 systemctl daemon-reload
 systemctl enable argo > /dev/null 2>&1
 systemctl start argo
-
 
 # sbox配置文件
 cat > /root/sbox/sbconfig_server.json << EOF
@@ -818,10 +445,6 @@ cat > /root/sbox/sbconfig_server.json << EOF
 }
 EOF
 
-
-
-
-
 # Create sing-box.service
 cat > /etc/systemd/system/sing-box.service <<EOF
 [Unit]
@@ -842,7 +465,6 @@ LimitNOFILE=infinity
 WantedBy=multi-user.target
 EOF
 
-
 # Check configuration and start the service
 if /root/sbox/sing-box check -c /root/sbox/sbconfig_server.json; then
     echo "Configuration checked successfully. Starting sing-box service..."
@@ -852,8 +474,6 @@ if /root/sbox/sing-box check -c /root/sbox/sbconfig_server.json; then
     systemctl restart sing-box
     create_shortcut
     show_client_configuration
-
-
 else
     echo "Error in configuration. Aborting"
 fi
