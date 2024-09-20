@@ -80,7 +80,7 @@ download_singbox(){
   # Fetch the latest (including pre-releases) release version number from GitHub API
   # 正式版
   #latest_version_tag=$(curl -s "https://api.github.com/repos/SagerNet/sing-box/releases" | grep -Po '"tag_name": "\K.*?(?=")' | head -n 1)
-  #beta版本
+  #beta���本
   latest_version_tag=$(curl -s "https://api.github.com/repos/SagerNet/sing-box/releases" | grep -Po '"tag_name": "\K.*?(?=")' | sort -V | tail -n 1)
   latest_version=${latest_version_tag#v}  # Remove 'v' prefix from version number
   echo "Latest version: $latest_version"
@@ -133,52 +133,6 @@ show_client_configuration() {
   # 获取当前ip
   server_ip=$(grep -o "SERVER_IP='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
   
-  # reality
-  # reality当前端口
-  reality_port=$(grep -o "REALITY_PORT='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
-  # 当前偷取的网站
-  reality_server_name=$(grep -o "REALITY_SERVER_NAME='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
-  # 当前reality uuid
-  reality_uuid=$(grep -o "REALITY_UUID='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
-  # 获取公钥
-  public_key=$(grep -o "PUBLIC_KEY='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
-  # 获取short_id
-  short_id=$(grep -o "SHORT_ID='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
-  #聚合reality
-  reality_link="vless://$reality_uuid@$server_ip:$reality_port?encryption=none&flow=xtls-rprx-vision&security=reality&sni=$reality_server_name&fp=chrome&pbk=$public_key&sid=$short_id&type=tcp&headerType=none#SING-BOX-REALITY"
-  echo ""
-  echo ""
-  show_notice "$(red "Reality 通用链接和二维码和通用参数")" 
-  echo ""
-  echo ""
-  red "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━Reality 通用链接如下━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-  echo "$reality_link"
-  echo ""
-  red "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-  echo "" 
-  red "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━Reality 二维码如下━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-  qrencode -t UTF8 $reality_link
-  echo ""
-  red "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-  echo ""
-  echo ""
-  red "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━Reality 客户端通用参数-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-  echo "服务器ip: $server_ip"
-  echo "监听端口: $reality_port"
-  echo "UUID: $reality_uuid"
-  echo "域名SNI: $reality_server_name"
-  echo "Public Key: $public_key"
-  echo "Short ID: $short_id"
-  echo ""
-  red "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-  echo ""
-
   # hy port
   hy_port=$(grep -o "HY_PORT='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
   # hy sni
@@ -208,7 +162,7 @@ show_client_configuration() {
   green "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo ""  
   echo ""
-  green "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━Hysteria2 客户端通用参数━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" 
+  green "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━Hysteria2 客户端通用参数━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" 
   echo "" 
   echo "服务器ip: $server_ip"
   echo "端口号: $hy_port"
@@ -243,50 +197,6 @@ EOF
   #argo域名
   argo_domain=$(grep -o "ARGO_DOMAIN='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
 
-  vmess_uuid=$(grep -o "VMESS_UUID='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
-  ws_path=$(grep -o "WS_PATH='[^']*'" /root/sbox/config | awk -F"'" '{print $2}')
-  
-  vmesswss_link='vmess://'$(echo '{"add":"speed.cloudflare.com","aid":"0","host":"'$argo_domain'","id":"'$vmess_uuid'","net":"ws","path":"'${ws_path}?ed=2048'","port":"443","ps":"sing-box-vmess-tls","tls":"tls","type":"none","v":"2"}' | base64 -w 0)
-  vmessws_link='vmess://'$(echo '{"add":"speed.cloudflare.com","aid":"0","host":"'$argo_domain'","id":"'$vmess_uuid'","net":"ws","path":"'${ws_path}?ed=2048'","port":"80","ps":"sing-box-vmess","tls":"","type":"none","v":"2"}' | base64 -w 0)
-  echo ""
-  echo ""
-  show_notice "$(yellow "vmess ws(s) 通用链接和二维码")"
-  echo ""
-  echo ""
-  yellow "━━━━━━━━━━━━━━━━━━━━以下为vmess wss链接，替换speed.cloudflare.com为自己的优选ip可获得极致体验━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-  echo "$vmesswss_link"
-  echo ""
-  yellow "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-  yellow "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━vmess wss 二维码━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-  qrencode -t UTF8 $vmesswss_link
-  echo ""
-  yellow "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-  red  "上述链接为wss 端口 443 可改为 2053 2083 2087 2096 8443"
-  echo ""
-  yellow "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-  yellow "━━━━━━━━━━━━━━━━━━━━━━━以下为vmess ws链接，替换speed.cloudflare.com为自己的优选ip可获得极致体验━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-  echo "$vmessws_link"
-  echo ""
-  yellow "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-  yellow "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━vmess ws 二维码━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-  qrencode -t UTF8 $vmessws_link
-  echo ""
-  yellow "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-  red "上述链接为ws 端口 80 可改为 8080 8880 2052 2082 2086 2095" 
-  echo ""
-  yellow "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-
-
   show_notice "clash-meta配置参数"
 cat << EOF
 
@@ -319,21 +229,6 @@ dns:
       - 240.0.0.0/4
 
 proxies:        
-  - name: Reality
-    type: vless
-    server: $server_ip
-    port: $reality_port
-    uuid: $reality_uuid
-    network: tcp
-    udp: true
-    tls: true
-    flow: xtls-rprx-vision
-    servername: $reality_server_name
-    client-fingerprint: chrome
-    reality-opts:
-      public-key: $public_key
-      short-id: $short_id
-
   - name: Hysteria2
     type: hysteria2
     server: $server_ip
@@ -346,40 +241,19 @@ proxies:
     skip-cert-verify: true
     alpn:
       - h3
-  - name: Vmess
-    type: vmess
-    server: speed.cloudflare.com
-    port: 443
-    uuid: $vmess_uuid
-    alterId: 0
-    cipher: auto
-    udp: true
-    tls: true
-    client-fingerprint: chrome  
-    skip-cert-verify: true
-    servername: $argo_domain
-    network: ws
-    ws-opts:
-      path: ${ws_path}?ed=2048
-      headers:
-        Host: $argo_domain
 
 proxy-groups:
   - name: 节点选择
     type: select
     proxies:
       - 自动选择
-      - Reality
       - Hysteria2
-      - Vmess
       - DIRECT
 
   - name: 自动选择
     type: url-test #选出延迟最低的机场节点
     proxies:
-      - Reality
       - Hysteria2
-      - Vmess
     url: "http://www.gstatic.com/generate_204"
     interval: 300
     tolerance: 50
@@ -495,32 +369,8 @@ cat << EOF
       "default": "urltest",
       "outbounds": [
         "urltest",
-        "sing-box-reality",
-        "sing-box-hysteria2",
-        "sing-box-vmess"
+        "sing-box-hysteria2"
       ]
-    },
-    {
-      "type": "vless",
-      "tag": "sing-box-reality",
-      "uuid": "$reality_uuid",
-      "flow": "xtls-rprx-vision",
-      "packet_encoding": "xudp",
-      "server": "$server_ip",
-      "server_port": $reality_port,
-      "tls": {
-        "enabled": true,
-        "server_name": "$reality_server_name",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "$public_key",
-          "short_id": "$short_id"
-        }
-      }
     },
     {
             "type": "hysteria2",
@@ -540,35 +390,6 @@ cat << EOF
                 ]
             }
         },
-        {
-            "server": "speed.cloudflare.com",
-            "server_port": 443,
-            "tag": "sing-box-vmess",
-            "tls": {
-                "enabled": true,
-                "server_name": "$argo_domain",
-                "insecure": true,
-                "utls": {
-                    "enabled": true,
-                    "fingerprint": "chrome"
-                }
-            },
-            "packet_encoding": "packetaddr",
-            "transport": {
-                "headers": {
-                    "Host": [
-                        "$argo_domain"
-                    ]
-                },
-                "path": "$ws_path",
-                "type": "ws",
-                "max_early_data": 2048,
-                "early_data_header_name": "Sec-WebSocket-Protocol"
-            },
-            "type": "vmess",
-            "security": "auto",
-            "uuid": "$vmess_uuid"
-        },
     {
       "tag": "direct",
       "type": "direct"
@@ -585,9 +406,7 @@ cat << EOF
       "tag": "urltest",
       "type": "urltest",
       "outbounds": [
-        "sing-box-reality",
-        "sing-box-hysteria2",
-        "sing-box-vmess"
+        "sing-box-hysteria2"
       ]
     }
   ],
@@ -967,66 +786,23 @@ cat > /root/sbox/sbconfig_server.json << EOF
   },
   "inbounds": [
     {
-      "type": "vless",
-      "tag": "vless-in",
+      "type": "hysteria2",
+      "tag": "hy2-in",
       "listen": "::",
-      "listen_port": $reality_port,
+      "listen_port": $hy_port,
       "users": [
-        {
-          "uuid": "$reality_uuid",
-          "flow": "xtls-rprx-vision"
-        }
+          {
+              "password": "$hy_password"
+          }
       ],
       "tls": {
-        "enabled": true,
-        "server_name": "$reality_server_name",
-        "reality": {
           "enabled": true,
-          "handshake": {
-            "server": "$reality_server_name",
-            "server_port": 443
-          },
-          "private_key": "$private_key",
-          "short_id": ["$short_id"]
-        }
+          "alpn": [
+              "h3"
+          ],
+          "certificate_path": "/root/sbox/self-cert/cert.pem",
+          "key_path": "/root/sbox/self-cert/private.key"
       }
-    },
-    {
-        "type": "hysteria2",
-        "tag": "hy2-in",
-        "listen": "::",
-        "listen_port": $hy_port,
-        "users": [
-            {
-                "password": "$hy_password"
-            }
-        ],
-        "tls": {
-            "enabled": true,
-            "alpn": [
-                "h3"
-            ],
-            "certificate_path": "/root/sbox/self-cert/cert.pem",
-            "key_path": "/root/sbox/self-cert/private.key"
-        }
-    },
-    {
-        "type": "vmess",
-        "tag": "vmess-in",
-        "listen": "::",
-        "listen_port": $vmess_port,
-        "users": [
-            {
-                "uuid": "$vmess_uuid",
-                "alterId": 0
-            }
-        ],
-        "transport": {
-            "type": "ws",
-            "path": "$ws_path",
-            "max_early_data":2048,
-            "early_data_header_name":"Sec-WebSocket-Protocol"
-        }
     }
   ],
   "outbounds": [
