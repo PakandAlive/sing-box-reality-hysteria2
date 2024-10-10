@@ -72,7 +72,7 @@ http-response ^https:\/\/api\.weibo\.cn\/2\/messageflow\/notice\? script-path = 
 
 # 发现页 - 热门微博信息流、搜索列表、热搜提醒、猜你想搜、视频流红包
 http-response ^https:\/\/api\.weibo\.cn\/2\/search\/(container_timeline|finder)\? script-path = https://gitlab.com/lodepuly/vpn_tool/raw/master/Resource/Script/Weibo/Weibo_remove_ads.js, requires-body = true, tag = 移除发现页广告
-http-response ^https:\/\/api\.weibo\.cn\/2\/searchall\? script-path = https://gitlab.com/lodepuly/vpn_tool/raw/master/Resource/Script/Weibo/Weibo_remove_ads.js, requires-body = true, tag = 移除发现页广告
+
 
 # 开屏广告 //*.uve.weibo.com
 http-response ^https:\/\/bootpreload\.uve\.weibo\.com\/v[12]\/ad\/preload script-path = https://gitlab.com/lodepuly/vpn_tool/raw/master/Resource/Script/Weibo/Weibo_remove_ads.js, requires-body = true, tag = 移除开屏广告
